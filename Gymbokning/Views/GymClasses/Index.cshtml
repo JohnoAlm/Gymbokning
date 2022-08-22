@@ -5,11 +5,27 @@
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h1 class="my-5 display-4">Welcome to the gym!</h1>
+<hr />
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
+<h2 class = "my-5">Gym Classes</h2>
+
+@{
+    if (User.Identity.IsAuthenticated)
+    {
+        <p>
+            <a asp-action="Create">Create Gym Class</a>
+        </p>
+    }
+
+    else
+    {
+        <p>
+            <a class = "disabled text-decoration-none text-muted">Create Gym Class</a>
+        </p>   
+    }
+}
+
 <table class="table">
     <thead>
         <tr>
@@ -43,18 +59,28 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
 
+            @{
+                    if (User.Identity.IsAuthenticated)
+                    {      
+                        <td>
+                           <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> <span>|</span>
+                           <a asp-action="Details" asp-route-id="@item.Id">Details</a> <span>|</span>
+                           <a asp-action="Delete" asp-route-id="@item.Id">Delete</a> 
+                           <a class = "mx-5 @ViewData["Button"]" asp-action="BookingToggle" asp-route-id="@item.Id">@ViewData["Message"]</a>                      
+                        </td>
+                    }
 
-
-                <a asp-action="BookingToggle" asp-route-id="@item.Id">Book</a>
-                
-                <a asp-action="BookingToggle" asp-route-id="@item.Id">Unbook</a>
-                    
-             </td>
+                    else
+                    {
+                        <td>
+                           <a class = "disabled text-decoration-none text-muted">Edit</a> <span>|</span>
+                           <a class = "disabled text-decoration-none text-muted">Details</a> <span>|</span>
+                           <a class = "disabled text-decoration-none text-muted">Delete</a> 
+                           <a class = "disabled mx-5 btn btn-secondary">@ViewData["Message"]</a>                      
+                        </td>
+                    }
+              }
         </tr>
 }
     </tbody>

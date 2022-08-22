@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Gymbokning.Data;
 using Gymbokning.Models;
 using Microsoft.AspNetCore.Identity;
+using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Gymbokning.Controllers
 {
@@ -22,6 +24,13 @@ namespace Gymbokning.Controllers
             _userManager = userManager;
         }
 
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        [Authorize]
         public async Task<IActionResult> BookingToggle(int? id)
         {
             if (id == null) return NotFound();
@@ -57,27 +66,26 @@ namespace Gymbokning.Controllers
 
             //redirect to action index
             return RedirectToAction(nameof(Index));
-
-
-
-
-
-
-
-
-
         }
-
-
-
-
-
-
 
         // GET: GymClasses
         public async Task<IActionResult> Index()
         {
-              return _context.GymClass != null ? 
+            var userId = _userManager.GetUserId(User);
+            var applicationUserIds = _context.ApplicationUserGymClass.Select(a => a.ApplicationUserId).ToList();
+
+            if (applicationUserIds.Contains(userId))
+            {
+                ViewData["Message"] = "Unbook";
+                ViewData["Button"] = "btn btn-danger";
+            }
+            else
+            {
+                ViewData["Message"] = "Book";
+                ViewData["Button"] = "btn btn-success";
+            }
+
+            return _context.GymClass != null ? 
                           View(await _context.GymClass.ToListAsync()) :
                           Problem("Entity set 'ApplicationDbContext.GymClass'  is null.");
         }
@@ -100,12 +108,14 @@ namespace Gymbokning.Controllers
             return View(gymClass);
         }
 
+        [Authorize]
         // GET: GymClasses/Create
         public IActionResult Create()
         {
             return View();
         }
 
+        [Authorize]
         // POST: GymClasses/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -122,6 +132,7 @@ namespace Gymbokning.Controllers
             return View(gymClass);
         }
 
+        [Authorize]
         // GET: GymClasses/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -138,6 +149,7 @@ namespace Gymbokning.Controllers
             return View(gymClass);
         }
 
+        [Authorize]
         // POST: GymClasses/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -173,6 +185,7 @@ namespace Gymbokning.Controllers
             return View(gymClass);
         }
 
+        [Authorize]
         // GET: GymClasses/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -191,6 +204,7 @@ namespace Gymbokning.Controllers
             return View(gymClass);
         }
 
+        [Authorize]
         // POST: GymClasses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
