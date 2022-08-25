@@ -42,11 +42,19 @@
         @{
             foreach(var item in UserManager)
             {
+
+                var userId = item.GetUserId(User);
                 var user = await item.GetUserAsync(User);
                 var email = user?.Email;
-                <dd>
-                    @Html.DisplayFor(modelItem => email)
-                </dd>
+
+                var applicationUser = Model.AttendingMembers.Where(a => a.ApplicationUserId == userId);
+
+                if(applicationUser != null)
+                {
+                    <dd>
+                        @Html.DisplayFor(modelItem => email)
+                    </dd>
+                }
             }
         }
 

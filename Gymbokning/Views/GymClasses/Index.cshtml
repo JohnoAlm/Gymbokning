@@ -1,4 +1,5 @@
-﻿@model IEnumerable<Gymbokning.Models.GymClass>
+﻿@*@model IEnumerable<Gymbokning.Models.GymClass>*@
+@model IEnumerable<GymClassesViewModel>
 @inject UserManager<ApplicationUser> UserManager
 
 @{
@@ -11,18 +12,11 @@
 <h2 class = "my-5">Gym Classes</h2>
 
 @{
-    if (User.Identity.IsAuthenticated)
+    if (User.IsInRole("Admin"))
     {
         <p>
             <a asp-action="Create">Create Gym Class</a>
         </p>
-    }
-
-    else
-    {
-        <p>
-            <a class = "disabled text-decoration-none text-muted">Create Gym Class</a>
-        </p>   
     }
 }
 
@@ -33,51 +27,48 @@
                 @Html.DisplayNameFor(model => model.Name)
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.StartTime)
+                @Html.DisplayNameFor(model => model.StartDate)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Duration)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
             </th>
             <th></th>
         </tr>
     </thead>
     <tbody>
+
 @foreach (var item in Model) {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.Name)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.StartTime)
+                @Html.DisplayFor(modelItem => item.StartDate)
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Duration)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
 
-            @{
-                    if (User.Identity.IsAuthenticated)
-                    {      
+                @{
+                    if (User.IsInRole("Admin"))
+                    {
                         <td>
                            <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> <span>|</span>
                            <a asp-action="Details" asp-route-id="@item.Id">Details</a> <span>|</span>
                            <a asp-action="Delete" asp-route-id="@item.Id">Delete</a> 
-                           <a class = "mx-5 @ViewData["Button"]" asp-action="BookingToggle" asp-route-id="@item.Id">@ViewData["Message"]</a>                      
+                           <a class = "mx-5 btn @(item.Attending ? "btn-danger" : "btn-success")" asp-action="BookingToggle" asp-route-id="@item.Id">
+                           @(item.Attending ? "Unbook" : "Book")
+                           </a>                      
                         </td>
                     }
 
-                    else
+                    else if (User.Identity.IsAuthenticated)
                     {
                         <td>
-                           <a class = "disabled text-decoration-none text-muted">Edit</a> <span>|</span>
-                           <a class = "disabled text-decoration-none text-muted">Details</a> <span>|</span>
-                           <a class = "disabled text-decoration-none text-muted">Delete</a> 
-                           <a class = "disabled mx-5 btn btn-secondary">@ViewData["Message"]</a>                      
+                           <a asp-action="Details" asp-route-id="@item.Id">Details</a>
+                           <a class = "mx-5 btn @(item.Attending ? "btn-danger" : "btn-success")" asp-action="BookingToggle" asp-route-id="@item.Id">
+                           @(item.Attending ? "Unbook" : "Book")
+                           </a>        
                         </td>
                     }
               }

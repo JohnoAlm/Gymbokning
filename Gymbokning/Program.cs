@@ -16,30 +16,34 @@ builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.R
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddAutoMapper(typeof(MapperProfile));
+
 var app = builder.Build();
+
 
 // SeedData
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var db = services.GetRequiredService<ApplicationDbContext>();
+//using (var scope = app.Services.CreateScope())
+//{
+//    var services = scope.ServiceProvider;
+//    var db = services.GetRequiredService<ApplicationDbContext>();
 
-    db.Database.EnsureDeleted();
-    db.Database.Migrate();
-    var config = services.GetRequiredService<IConfiguration>();
-    var adminPW = config["AdminPW"];
+//    db.Database.EnsureDeleted();
+//    db.Database.Migrate();
 
-    try
-    {
-        SeedData.InitAsync(db, services, adminPW).GetAwaiter().GetResult();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine(ex);
-        throw;
-    }
-}
+//    var config = services.GetRequiredService<IConfiguration>();
+//    var adminPW = config["AdminPW"];
+
+//    try
+//    {
+//        SeedData.InitAsync(db, services, adminPW).GetAwaiter().GetResult();
+//    }
+//    catch (Exception ex)
+//    {
+//        Console.WriteLine(ex);
+//        throw;
+//    }
+//}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

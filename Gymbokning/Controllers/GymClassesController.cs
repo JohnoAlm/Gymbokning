@@ -10,16 +10,20 @@ using Gymbokning.Models;
 using Microsoft.AspNetCore.Identity;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
+using AutoMapper;
+using Gymbokning.ViewModels;
 
 namespace Gymbokning.Controllers
 {
     public class GymClassesController : Controller
     {
+        private readonly IMapper mapper;
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public GymClassesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public GymClassesController(IMapper mapper, ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
+            this.mapper = mapper;
             _context = context;
             _userManager = userManager;
         }
@@ -30,7 +34,6 @@ namespace Gymbokning.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        [Authorize]
         public async Task<IActionResult> BookingToggle(int? id)
         {
             if (id == null) return NotFound();
@@ -49,6 +52,7 @@ namespace Gymbokning.Controllers
                  {
                      ApplicationUserId = userId,
                      GymClassId = (int)id
+
                  };
 
                 _context.Add(applicationUserGymClass);
@@ -71,23 +75,31 @@ namespace Gymbokning.Controllers
         // GET: GymClasses
         public async Task<IActionResult> Index()
         {
+            //var m = mapper.ProjectTo<GymClassesViewModel>(_context.GymClass).ToListAsync();
+
+            var classes = await _context.GymClass.ToListAsync();
+            var mmm = mapper.Map<IEnumerable<GymClassesViewModel>>(classes);
+
+
             var userId = _userManager.GetUserId(User);
-            var applicationUserIds = _context.ApplicationUserGymClass.Select(a => a.ApplicationUserId).ToList();
+            var gymClasses2 = await _context.GymClass.Include(g => g.AttendingMembers).ToListAsync();
+            var res = mapper.Map<IEnumerable<GymClassesViewModel>>(gymClasses2, opt => opt.Items.Add("Id", userId));
 
-            if (applicationUserIds.Contains(userId))
-            {
-                ViewData["Message"] = "Unbook";
-                ViewData["Button"] = "btn btn-danger";
-            }
-            else
-            {
-                ViewData["Message"] = "Book";
-                ViewData["Button"] = "btn btn-success";
-            }
+            var gymClasses = await _context.GymClass.Include(g => g.AttendingMembers)
+                .Select(g => new GymClassesViewModel
+                {
+                    Id = g.Id,
+                    Name = g.Name,
+                    Duration = g.Duration,
+                    StartDate = g.StartTime,
+                    Attending = g.AttendingMembers.Any(a => a.ApplicationUserId == userId)
 
-            return _context.GymClass != null ? 
-                          View(await _context.GymClass.ToListAsync()) :
-                          Problem("Entity set 'ApplicationDbContext.GymClass'  is null.");
+                })
+                .ToListAsync();
+
+
+
+            return View(res);
         }
 
         // GET: GymClasses/Details/5
@@ -108,14 +120,14 @@ namespace Gymbokning.Controllers
             return View(gymClass);
         }
 
-        [Authorize]
+        [Authorize (Roles = "Admin")]
         // GET: GymClasses/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        [Authorize]
+        [Authorize (Roles = "Admin")]
         // POST: GymClasses/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -132,7 +144,7 @@ namespace Gymbokning.Controllers
             return View(gymClass);
         }
 
-        [Authorize]
+        [Authorize (Roles = "Admin")]
         // GET: GymClasses/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
@@ -149,7 +161,7 @@ namespace Gymbokning.Controllers
             return View(gymClass);
         }
 
-        [Authorize]
+        [Authorize (Roles = "Admin")]
         // POST: GymClasses/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
@@ -185,7 +197,7 @@ namespace Gymbokning.Controllers
             return View(gymClass);
         }
 
-        [Authorize]
+        [Authorize (Roles = "Admin")]
         // GET: GymClasses/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -204,7 +216,7 @@ namespace Gymbokning.Controllers
             return View(gymClass);
         }
 
-        [Authorize]
+        [Authorize (Roles = "Admin")]
         // POST: GymClasses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]

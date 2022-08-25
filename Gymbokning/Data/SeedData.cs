@@ -27,7 +27,7 @@ namespace Gymbokning.Data
             ArgumentNullException.ThrowIfNull(userManager);
 
             var roleNames = new[] { "Member", "Admin" };
-            var adminEmail = "admin@Gymclass.se";
+            var adminEmail = "admin@Gymbooking.com";
 
             var gymClasses = GetGymClasses();
             await db.AddRangeAsync(gymClasses);
@@ -58,6 +58,8 @@ namespace Gymbokning.Data
 
             var admin = new ApplicationUser
             {
+                FirstName = "Admin",
+                LastName =  "Adminsson",
                 UserName = adminEmail,
                 Email = adminEmail
             };
